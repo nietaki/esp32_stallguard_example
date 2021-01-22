@@ -21,8 +21,9 @@
 #define MAX_SPEED 40 // In timer value
 #define MIN_SPEED 1000
 
+#define STALL_VALUE 20 // [0..255]
 /* #define STALL_VALUE 100 // [0..255] */
-#define STALL_VALUE 255 // [0..255]
+/* #define STALL_VALUE 255 // [0..255] */
 
 #define EN_PIN 32           // Enable
 #define DIR_PIN 0          // Direction
@@ -59,7 +60,7 @@ int timeBetweenHalfSteps;
 void makeHalfStep() { digitalWrite(STEP_PIN, !digitalRead(STEP_PIN)); }
 
 void setup() {
-  timeBetweenHalfSteps = 1000;
+  timeBetweenHalfSteps = 100;
   Serial.begin(250000); // Init serial port and set baudrate
   while (!Serial)
     ; // Wait for serial port to connect
@@ -80,8 +81,8 @@ void setup() {
   driver.rms_current(400); // mA
   driver.microsteps(16);
   driver.TCOOLTHRS(0xFFFFF); // 20bit max
-  driver.semin(5);
-  driver.semax(2);
+  driver.semin(0);
+  driver.semax(3);
   driver.sedn(0b01);
   driver.SGTHRS(STALL_VALUE);
 
@@ -124,7 +125,7 @@ void loop() {
     }
   }
 
-  if ((ms - last_time) > 1000) {
+  if ((ms - last_time) > 5000) {
     last_time = ms;
     uint16_t sgResult = driver.SG_RESULT();
     uint16_t csActual = driver.cs2rms(driver.cs_actual());
@@ -133,5 +134,6 @@ void loop() {
     Serial.print(sgResult, DEC);
     Serial.print(" ");
     Serial.println(csActual, DEC);
+    Serial.println();
   }
 }
